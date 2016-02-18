@@ -503,17 +503,36 @@ class WebWeixin(object):
 				listenProcess.terminate()
 				print('[*] 退出微信')
 				exit()
-			elif text[:2] == '->':
-				[name, word] = text[2:].split(':')
-				if name == 'all': self.sendMsgToAll(word)
-				else: self.sendMsg(name, word)
-			elif text[:3] == 'm->':
-				[name, file] = text[3:].split(':')
-				self.sendMsg(name, file, True)
-			elif text[:3] == 'f->':
+			if text == 'show contacts':
+				print '你有以下联系人:'
+				for member in self.MemberList:
+					print member['RemarkName'], member['NickName']
+			elif text.startswith('->'):
+				pm = re.match(r'->(\S+?):(\S*)', text)
+				if not pm:
+					print '格式错误(->[昵称或ID]:[内容])'
+				else:
+					name, word = pm.group(1), pm.group(2)
+					if name == 'all':
+						self.sendMsgToAll(word)
+					else:
+						self.sendMsg(name, word)
+			elif text.startswith('m->'):
+				pm = re.match(r'm->(\S+?):(\S*)', text)
+				if not pm:
+					print '格式错误(m->[昵称或ID]:[文件路径])'
+				else:
+					name, file = pm.group(1), pm.group(2)
+					if os.path.isfile(file):
+						self.sendMsg(name, file, True)
+					else:
+						print file + "不是一个有效的文件"
+			elif text.startswith('f->'):
 				print '发送文件'
-			elif text[:3] == 'i->':
+			elif text.startswith('i->'):
 				print '发送图片'
+			else:
+				print '格式错误'
 
 	def _safe_open(self, path):
 		if platform.system() == "Linux":
